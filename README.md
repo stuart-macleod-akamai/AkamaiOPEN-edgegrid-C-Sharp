@@ -4,7 +4,7 @@ This library assists in the interaction with Akamai APIs using the EdgeGrid sign
 API specs can be found at: https://techdocs.akamai.com/
 
 ## Project organization
-* /EdgeGridAuth - core auth signere project
+* /EdgeGridAuth - core auth signer project
 * /OpenAPI - generic Windows tool to demonstrate using the signer 
 * /Akamai.EdgeGrid.Auth.sln - root VisualStudio solution
 
