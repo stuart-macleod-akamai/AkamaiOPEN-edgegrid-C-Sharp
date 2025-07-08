@@ -25,9 +25,8 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Akamai.EdgeGrid.Auth
 {
-
     /// <summary>
-    /// The EdgeGrid Signer is responsible for brokering a requests.This class is responsible 
+    /// The EdgeGrid Signer is responsible for brokering a requests.This class is responsible
     /// for the core interaction logic given an API command and the associated set of parameters.
     /// </summary>
     public class EdgeGridV2Signer
@@ -40,7 +39,7 @@ namespace Akamai.EdgeGrid.Auth
         /// <summary>
         /// The maximum body size used for computing the POST body hash (in bytes).
         /// </summary>
-	    internal long? MaxBodyHashSize {get; private set; } = 131072; // 128KB
+        internal long? MaxBodyHashSize { get; private set; } = 131072; // 128KB
 
         /// <summary>
         /// Formats authorization elements into the correct order for signing
@@ -50,12 +49,14 @@ namespace Akamai.EdgeGrid.Auth
         internal string GetAuthDataValue(EdgeGridCredentials credential, string timestamp)
         {
             Guid nonce = Guid.NewGuid();
-            return string.Format("{0} client_token={1};access_token={2};timestamp={3};nonce={4};",
+            return string.Format(
+                "{0} client_token={1};access_token={2};timestamp={3};nonce={4};",
                 "EG1-HMAC-SHA256",
                 credential.ClientToken,
                 credential.AccessToken,
                 timestamp,
-                nonce.ToString().ToLower());
+                nonce.ToString().ToLower()
+            );
         }
 
         /// <summary>
@@ -65,7 +66,12 @@ namespace Akamai.EdgeGrid.Auth
         /// <param name="method">HTTP request method</param>
         /// <param name="pathAndQuery">The path and query string of the current HTTP request</param>
         /// <param name="requestBody">The body of the HTTP request, if any</param>
-        internal string GetStringToSign(EdgeGridCredentials credential, string method, string pathAndQuery, Byte[]? requestBody = null)
+        internal string GetStringToSign(
+            EdgeGridCredentials credential,
+            string method,
+            string pathAndQuery,
+            Byte[]? requestBody = null
+        )
         {
             string bodyHash = "";
             if (method == "POST" && requestBody != null)
@@ -74,12 +80,14 @@ namespace Akamai.EdgeGrid.Auth
                 Console.WriteLine("Body Hash: {0}", bodyHash);
             }
 
-            return string.Format("{0}\t{1}\t{2}\t{3}\t\t{4}\t",
+            return string.Format(
+                "{0}\t{1}\t{2}\t{3}\t\t{4}\t",
                 method,
                 "https",
                 credential.Host,
                 pathAndQuery,
-                bodyHash);
+                bodyHash
+            );
         }
 
         /// <summary>
@@ -88,7 +96,8 @@ namespace Akamai.EdgeGrid.Auth
         /// <param name="requestBody">The body of the HTTP request</param>
         internal string GetRequestBodyHash(Byte[] requestBody)
         {
-            if (requestBody.Length == 0) return string.Empty;
+            if (requestBody.Length == 0)
+                return string.Empty;
 
             if (requestBody.Length > MaxBodyHashSize)
             {
@@ -165,7 +174,10 @@ namespace Akamai.EdgeGrid.Auth
         {
             if (request.RequestUri == null)
             {
-                throw new ArgumentNullException(nameof(request.RequestUri), "Request URI cannot be null.");
+                throw new ArgumentNullException(
+                    nameof(request.RequestUri),
+                    "Request URI cannot be null."
+                );
             }
 
             byte[] requestBodyByteArray;
@@ -174,7 +186,12 @@ namespace Akamai.EdgeGrid.Auth
             else
                 requestBodyByteArray = request.Content.ReadAsByteArrayAsync().Result;
 
-            string AuthHeader = GetAuthHeader(credential: credential, method: request.Method.ToString().ToUpperInvariant(), pathAndQuery: request.RequestUri.PathAndQuery, requestBodyByteArray);
+            string AuthHeader = GetAuthHeader(
+                credential: credential,
+                method: request.Method.ToString().ToUpperInvariant(),
+                pathAndQuery: request.RequestUri.PathAndQuery,
+                requestBodyByteArray
+            );
             request.Headers.Add("Authorization", AuthHeader);
             return request;
         }
@@ -187,7 +204,12 @@ namespace Akamai.EdgeGrid.Auth
         /// <param name="pathAndQuery">The path and query string of the current HTTP request</param>
         /// <param name="requestBody">The body of the HTTP request, if any</param>
         /// <returns>the signed request</returns>
-        public string GetAuthHeader(EdgeGridCredentials credential, string method, string pathAndQuery, Byte[] requestBody)
+        public string GetAuthHeader(
+            EdgeGridCredentials credential,
+            string method,
+            string pathAndQuery,
+            Byte[] requestBody
+        )
         {
             // Throw an exception if the credential is null
             if (credential.ClientSecret == null || credential.ClientSecret == "")
@@ -200,17 +222,28 @@ namespace Akamai.EdgeGrid.Auth
             string ISOTimestamp = Timestamp.ToUniversalTime().ToString("yyyyMMddTHH:mm:sszz00");
 
             // Construct signing string from request elements
-            string RequestData = GetStringToSign(credential: credential, method: method, pathAndQuery: pathAndQuery, requestBody: requestBody);
+            string RequestData = GetStringToSign(
+                credential: credential,
+                method: method,
+                pathAndQuery: pathAndQuery,
+                requestBody: requestBody
+            );
             Console.WriteLine("Request Data: {0}", RequestData);
 
             // Construct auth data
             string AuthData = GetAuthDataValue(credential: credential, timestamp: ISOTimestamp);
 
             // Get signing key by hashing the client secret with the timestamp
-            string SigningKey = GetEncryptedMessage(secret: credential.ClientSecret, message: ISOTimestamp);
+            string SigningKey = GetEncryptedMessage(
+                secret: credential.ClientSecret,
+                message: ISOTimestamp
+            );
 
             // Create the signature by hashing the request data with the signing key
-            string Signature = GetEncryptedMessage(secret: SigningKey, message: $"{RequestData}{AuthData}");
+            string Signature = GetEncryptedMessage(
+                secret: SigningKey,
+                message: $"{RequestData}{AuthData}"
+            );
 
             // Combine elements into Auth header value
             string AuthHeader = $"{AuthData}signature={Signature}";

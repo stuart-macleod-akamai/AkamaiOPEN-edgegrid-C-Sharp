@@ -13,7 +13,7 @@ namespace Akamai.EdgeGrid.Auth
         public string? ClientToken { get; private set; } = "";
         public string? ClientSecret { get; private set; } = "";
         public string? AccessToken { get; private set; } = "";
-
+        public string? AccountKey { get; private set; } = "";
 
         public EdgeGridCredentials(string? edgeRCFile = null, string? section = "default")
         {
@@ -67,17 +67,20 @@ namespace Akamai.EdgeGrid.Auth
             string ClientTokenVariable;
             string ClientSecretVariable;
             string HostVariable;
+            string AccountKeyVariable;
             string SectionPrefix = $"_{section.ToUpperInvariant()}";
 
             AccessTokenVariable = $"AKAMAI_{SectionPrefix}_ACCESS_TOKEN";
             ClientTokenVariable = $"AKAMAI_{SectionPrefix}_CLIENT_TOKEN";
             ClientSecretVariable = $"AKAMAI_{SectionPrefix}_CLIENT_SECRET";
             HostVariable = $"AKAMAI_{SectionPrefix}_HOST";
+            AccountKeyVariable = $"AKAMAI_{SectionPrefix}_ACCOUNT_KEY";
 
             this.AccessToken = Environment.GetEnvironmentVariable(AccessTokenVariable);
             this.ClientToken = Environment.GetEnvironmentVariable(ClientTokenVariable);
             this.ClientSecret = Environment.GetEnvironmentVariable(ClientSecretVariable);
             this.Host = Environment.GetEnvironmentVariable(HostVariable);
+            this.AccountKey = Environment.GetEnvironmentVariable(AccountKeyVariable);
         }
 
         internal void GetCredentialsFromEdgeRCFile(string edgeRCFile, string? section = "default")
@@ -114,6 +117,9 @@ namespace Akamai.EdgeGrid.Auth
                                 break;
                             case "access_token":
                                 this.AccessToken = value;
+                                break;
+                            case "account_key":
+                                this.AccountKey = value;
                                 break;
                         }
                     }
